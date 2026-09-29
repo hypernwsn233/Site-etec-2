@@ -58,3 +58,23 @@ function updateSphere(){const nodes=$$(".sphere-art");nodes.forEach((el)=>{let x
 function updateHero(){const s=$("#heroSphere");if(s){s.style.transform=`rotateX(${rotX*18}deg) rotateY(${rotY*18}deg)`}}
 document.addEventListener("mousemove",e=>{$("#cursorGlow").style.transform=`translate(${e.clientX}px,${e.clientY}px)`});
 renderGallery();updateSphere();
+
+/* premium interaction layer */
+const cursor=$("#cursorGlow");
+let mx=innerWidth/2,my=innerHeight/2,cx=mx,cy=my;
+if(cursor){document.addEventListener("pointermove",e=>{mx=e.clientX;my=e.clientY});(function tick(){cx+=(mx-cx)*.18;cy+=(my-cy)*.18;cursor.style.left=cx+"px";cursor.style.top=cy+"px";requestAnimationFrame(tick)})()}
+$$("a,button,.art-card,.sphere-art,.swatch").forEach(el=>{el.addEventListener("mouseenter",()=>document.body.classList.add("cursor-hover"));el.addEventListener("mouseleave",()=>document.body.classList.remove("cursor-hover"))});
+const hero=$(".hero"),orbit=$(".hero-orbit");
+hero?.addEventListener("pointermove",e=>{if(innerWidth<850)return;const r=hero.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;orbit.style.transform=`translate3d(${x*18}px,${y*18}px,0) rotateX(${-y*3}deg) rotateY(${x*3}deg)`});
+hero?.addEventListener("pointerleave",()=>{orbit.style.transform=""});
+const revealTargets=$$(".intro-strip,.gallery-section .section-heading,.sphere-stage,.artist-banner,.about-section,.site-footer,.art-card");
+revealTargets.forEach(el=>el.classList.add("reveal"));
+const revealObserver=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add("visible");revealObserver.unobserve(e.target)}}),{threshold:.08});
+revealTargets.forEach(el=>revealObserver.observe(el));
+const title=$("#heroSphere");
+if(title){let t=0;window.addEventListener("scroll",()=>{t=scrollY*.06;title.style.transform=`rotateX(${Math.sin(t)*4}deg) rotateY(${t}deg)`},{passive:true})}
+let sphereVelocity=.002;
+const stage=$("#sphereStage");
+stage?.addEventListener("wheel",e=>{if(innerWidth>850){e.preventDefault();rotY+=e.deltaY*.001;updateSphere()}},{passive:false});
+stage?.addEventListener("dblclick",()=>{rotX=-.1;rotY=.3});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeStudio();$("#artModal")?.classList.remove("open");$("#publishModal")?.classList.remove("open")}});
