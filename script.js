@@ -715,4 +715,656 @@ async function showPodium() {
       ],
       {
         duration: i === 0 ? 900 : 650,
-        easing: "cubic-bezie
+        easing: "cubic-bezier(.2,.9,.3,1.15)",
+        fill: "forwards",
+      },
+    );
+    c.cap.animate([{ opacity: 0 }, { opacity: 1 }], {
+      duration: 500,
+      delay: 350,
+      fill: "forwards",
+    });
+    count(c.num, c.n);
+    if (i === 0) {
+      c.fr.animate(
+        [{ boxShadow: "0 0 0 #d9ac2f00" }, { boxShadow: "0 0 70px #d9ac2fbb" }],
+        {
+          duration: 1400,
+          delay: 500,
+          fill: "forwards",
+        },
+      );
+      c.sh.animate(
+        [{ transform: "translateX(-130%)" }, { transform: "translateX(130%)" }],
+        {
+          duration: 1700,
+          delay: 900,
+          iterations: Infinity,
+          easing: "ease-in-out",
+        },
+      );
+    }
+    await sleep(i === 1 ? 1800 : 1100);
+  }
+}
+function rank() {
+  const box = $("#rk");
+  box.textContent = "";
+  const l = arts
+    .filter((a) => !a.empty)
+    .map((a) => [a, likesOf(a)])
+    .sort((p, q) => q[1] - p[1])
+    .slice(0, 5);
+  if (!l.length) {
+    box.textContent = "Nenhuma obra ainda. Seja a primeira pessoa a expor.";
+    return;
+  }
+  const h = document.createElement("div");
+  h.textContent = "Mais curtidas";
+  h.style.cssText = "font:500 17px var(--serif);margin-bottom:6px";
+  box.append(h);
+  l.forEach(([a, n]) => {
+    const b = document.createElement("button"),
+      t = document.createElement("span"),
+      c = document.createElement("span");
+    t.textContent = a.title;
+    c.textContent = n;
+    b.append(t, c);
+    b.onclick = () => {
+      $("#rk").classList.remove("open");
+      goTo(a);
+    };
+    box.append(b);
+  });
+}
+const ease = (k) => 1 - Math.pow(1 - k, 3);
+function loop(t) {
+  t *= 0.001;
+  const dz = entered ? 0.045 : 0.02;
+  cz += (tz - cz) * dz;
+  if (focus) {
+    cam.position.lerp(camT, 0.07);
+    look.lerp(lookT, 0.07);
+  } else if (!entered) {
+    cam.position.set(Math.sin(t * 0.15) * 0.6, 2.3, cz);
+    look.set(0, 2.1, cz - 14);
+  } else {
+    cam.position.lerp(new THREE.Vector3(mx * 1.2, 2.2 - my * 0.25, cz), 0.08);
+    look.lerp(new THREE.Vector3(mx * 4, 2.2 - my * 0.8, cz - 12), 0.08);
+  }
+  cam.lookAt(look);
+  spots.forEach((sp, i) => {
+    const side = i % 2 ? 1 : -1,
+      z = Math.round((cz - 3) / 6) * 6 - Math.floor(i / 2) * 6 + 3;
+    sp.position.set(side * 1.2, H - 0.1, z);
+    sp.target.position.set(side * W, 2.3, z - 2);
+  });
+  frames.forEach((f) => {
+    const s = f === hov || f === focus ? 1.03 : 1;
+    f.userData.s += (s - f.userData.s) * 0.1;
+    f.scale.setScalar(f.userData.s);
+  });
+  if (scM) {
+    scM.rotation.y = t * 0.45;
+    scM.position.y = 2.35 + Math.sin(t * 1.3) * 0.07;
+  }
+  if (ring) ring.rotation.z = t * 0.8;
+  $("#bar i").style.width =
+    Math.max(0, Math.min(1, (HOME - cz) / (HOME - minZ()))) * 100 + "%";
+  R.render(S, cam);
+  requestAnimationFrame(loop);
+}
+function rs() {
+  R.setSize(innerWidth, innerHeight);
+  cam.aspect = innerWidth / innerHeight;
+  cam.updateProjectionMatrix();
+}
+addEventListener("resize", rs);
+rs();
+requestAnimationFrame(loop);
+
+// ---------- estúdio ----------
+const cv = $("#cv"),
+  vx = cv.getContext("2d"),
+  CW = 1200,
+  CH = 900,
+  BR = ["pincel", "lapis", "aero", "marcador", "caneta", "borracha", "spray"];
+let L = [],
+  ai = 0,
+  x = null,
+  tool = "pincel",
+  down = false,
+  sx = 0,
+  sy = 0,
+  cx = 0,
+  cy = 0,
+  last = [],
+  snap = null,
+  undo = [],
+  redo = [],
+  raf = 0;
+const rgba = (h, a) => {
+  const n = parseInt(h.slice(1), 16);
+  return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+};
+function mkLayer(name, white) {
+  const c = cvs(CW, CH);
+  if (white) {
+    const g = c.getContext("2d");
+    g.fillStyle = "#fff";
+    g.fillRect(0, 0, CW, CH);
+  }
+  return { c, name, vis: true, op: 1, bl: "source-over" };
+}
+function comp() {
+  raf = 0;
+  vx.globalCompositeOperation = "source-over";
+  vx.globalAlpha = 1;
+  vx.clearRect(0, 0, CW, CH);
+  L.forEach((l) => {
+    if (!l.vis) return;
+    vx.globalAlpha = l.op;
+    vx.globalCompositeOperation = l.bl;
+    vx.drawImage(l.c, 0, 0);
+  });
+  vx.globalAlpha = 1;
+  vx.globalCompositeOperation = "source-over";
+}
+const draw = () => raf || (raf = requestAnimationFrame(comp));
+function setActive(i) {
+  ai = Math.max(0, Math.min(L.length - 1, i));
+  x = L[ai].c.getContext("2d", { willReadFrequently: true });
+  layersUI();
+}
+function layersUI() {
+  const ul = $("#ly");
+  ul.textContent = "";
+  L.map((l, i) => i)
+    .reverse()
+    .forEach((i) => {
+      const l = L[i],
+        li = document.createElement("li"),
+        eye = document.createElement("input"),
+        n = document.createElement("span");
+      eye.type = "checkbox";
+      eye.checked = l.vis;
+      eye.onclick = (e) => {
+        e.stopPropagation();
+        l.vis = eye.checked;
+        draw();
+      };
+      n.textContent = l.name;
+      li.append(eye, n);
+      li.className = i === ai ? "on" : "";
+      li.onclick = () => setActive(i);
+      ul.append(li);
+    });
+  $("#bl").value = L[ai].bl;
+  $("#lo").value = L[ai].op * 100;
+}
+function resetLayers() {
+  L = [mkLayer("Fundo", true), mkLayer("Camada 1")];
+  undo = [];
+  redo = [];
+  setActive(1);
+  draw();
+}
+$("#ladd").onclick = () => {
+  L.splice(ai + 1, 0, mkLayer("Camada " + L.length));
+  setActive(ai + 1);
+  draw();
+};
+$("#ldup").onclick = () => {
+  const n = mkLayer(L[ai].name + " cópia");
+  n.c.getContext("2d").drawImage(L[ai].c, 0, 0);
+  n.op = L[ai].op;
+  n.bl = L[ai].bl;
+  L.splice(ai + 1, 0, n);
+  setActive(ai + 1);
+  draw();
+};
+$("#ldel").onclick = () => {
+  if (L.length < 2) return;
+  L.splice(ai, 1);
+  setActive(Math.max(0, ai - 1));
+  draw();
+};
+$("#lup").onclick = () => {
+  if (ai < L.length - 1) {
+    [L[ai], L[ai + 1]] = [L[ai + 1], L[ai]];
+    setActive(ai + 1);
+    draw();
+  }
+};
+$("#ldn").onclick = () => {
+  if (ai > 0) {
+    [L[ai], L[ai - 1]] = [L[ai - 1], L[ai]];
+    setActive(ai - 1);
+    draw();
+  }
+};
+$("#bl").onchange = () => {
+  L[ai].bl = $("#bl").value;
+  draw();
+};
+$("#lo").oninput = () => {
+  L[ai].op = $("#lo").value / 100;
+  draw();
+};
+const TL = [
+  ["pincel", "Pincel"],
+  ["lapis", "Lápis"],
+  ["aero", "Aerógrafo"],
+  ["marcador", "Marcador"],
+  ["caneta", "Caneta caligráfica"],
+  ["spray", "Spray"],
+  ["borracha", "Borracha"],
+  ["balde", "Balde de tinta"],
+  ["gotas", "Conta-gotas"],
+  ["linha", "Linha"],
+  ["ret", "Retângulo"],
+  ["elipse", "Elipse"],
+  ["grad", "Gradiente"],
+  ["texto", "Texto"],
+];
+function selTool(k) {
+  tool = k;
+  document
+    .querySelectorAll("#tl button")
+    .forEach((n) => n.classList.toggle("on", n.dataset.k === k));
+}
+TL.forEach(([k, l]) => {
+  const b = document.createElement("button");
+  b.textContent = l;
+  b.dataset.k = k;
+  b.onclick = () => selTool(k);
+  $("#tl").append(b);
+});
+selTool("pincel");
+[
+  "#1c1f24",
+  "#ffffff",
+  "#b3202a",
+  "#e2661f",
+  "#f0b429",
+  "#2f8f4e",
+  "#1d3fa8",
+  "#7a3d8c",
+  "#8a6238",
+  "#8d949c",
+  "#f2a7b5",
+  "#9ad0e8",
+  "#c8d96f",
+  "#0e5a5a",
+  "#5b3a1e",
+  "#e9dcc4",
+].forEach((c) => {
+  const b = document.createElement("button");
+  b.style.background = c;
+  b.title = c;
+  b.onclick = () => ($("#col").value = c);
+  $("#sw").append(b);
+});
+const push = () => {
+  undo.push({ l: L[ai], d: x.getImageData(0, 0, CW, CH) });
+  if (undo.length > 15) undo.shift();
+  redo = [];
+};
+const pos = (e) => {
+  const r = cv.getBoundingClientRect();
+  return [
+    ((e.clientX - r.left) * CW) / r.width,
+    ((e.clientY - r.top) * CH) / r.height,
+  ];
+};
+const sp = (a, b) => {
+  const r = [[a, b]],
+    m = +$("#sy").value;
+  if (m & 1) r.push([CW - a, b]);
+  if (m & 2) r.push([a, CH - b]);
+  if (m === 3) r.push([CW - a, CH - b]);
+  return r;
+};
+function flood(px, py, hex) {
+  const im = x.getImageData(0, 0, CW, CH),
+    d = im.data,
+    i0 = ((py | 0) * CW + (px | 0)) * 4,
+    t = [d[i0], d[i0 + 1], d[i0 + 2], d[i0 + 3]],
+    c = parseInt(hex.slice(1), 16),
+    cr = c >> 16,
+    cg = (c >> 8) & 255,
+    cb = c & 255;
+  if (t[0] === cr && t[1] === cg && t[2] === cb && t[3] === 255) return;
+  const ok = (i) =>
+    Math.abs(d[i] - t[0]) +
+      Math.abs(d[i + 1] - t[1]) +
+      Math.abs(d[i + 2] - t[2]) +
+      Math.abs(d[i + 3] - t[3]) <
+    90;
+  const st = [[px | 0, py | 0]];
+  while (st.length) {
+    const [a, b] = st.pop();
+    if (a < 0 || b < 0 || a >= CW || b >= CH) continue;
+    const i = (b * CW + a) * 4;
+    if (!ok(i)) continue;
+    d[i] = cr;
+    d[i + 1] = cg;
+    d[i + 2] = cb;
+    d[i + 3] = 255;
+    st.push([a + 1, b], [a - 1, b], [a, b + 1], [a, b - 1]);
+  }
+  x.putImageData(im, 0, 0);
+}
+function setup() {
+  x.lineCap = x.lineJoin = "round";
+  x.globalCompositeOperation =
+    tool === "borracha" ? "destination-out" : "source-over";
+  x.globalAlpha = $("#op").value / 100;
+  x.strokeStyle = x.fillStyle = $("#col").value;
+}
+function seg(A, B, w, pr) {
+  const c = $("#col").value,
+    op = $("#op").value / 100;
+  A.forEach((a, k) => {
+    const b = B[k];
+    if (tool === "spray") {
+      for (let i = 0; i < 24; i++) {
+        const t = Math.random() * 6.28,
+          r = Math.random() * w * 2.2;
+        x.fillRect(b[0] + Math.cos(t) * r, b[1] + Math.sin(t) * r, 2, 2);
+      }
+    } else if (tool === "aero") {
+      const st = Math.max(1, (w / 4) | 0),
+        n = Math.max(1, (Math.hypot(b[0] - a[0], b[1] - a[1]) / st) | 0);
+      for (let i = 1; i <= n; i++) {
+        const X = a[0] + ((b[0] - a[0]) * i) / n,
+          Y = a[1] + ((b[1] - a[1]) * i) / n,
+          g = x.createRadialGradient(X, Y, 0, X, Y, w * 1.2);
+        g.addColorStop(0, rgba(c, 0.22 * op));
+        g.addColorStop(1, rgba(c, 0));
+        x.globalAlpha = 1;
+        x.fillStyle = g;
+        x.fillRect(X - w * 1.2, Y - w * 1.2, w * 2.4, w * 2.4);
+      }
+    } else if (tool === "caneta") {
+      const d = w * 0.35;
+      x.beginPath();
+      x.moveTo(a[0] - d, a[1] + d);
+      x.lineTo(a[0] + d, a[1] - d);
+      x.lineTo(b[0] + d, b[1] - d);
+      x.lineTo(b[0] - d, b[1] + d);
+      x.closePath();
+      x.fill();
+    } else {
+      x.lineWidth =
+        w * pr * (tool === "lapis" ? 0.35 : tool === "marcador" ? 1.3 : 1);
+      x.lineCap = tool === "marcador" ? "square" : "round";
+      x.beginPath();
+      x.moveTo(a[0], a[1]);
+      x.lineTo(b[0], b[1]);
+      x.stroke();
+      if (a === b) {
+        x.beginPath();
+        x.arc(a[0], a[1], x.lineWidth / 2, 0, 7);
+        x.fill();
+      }
+    }
+  });
+}
+function shape(p, q) {
+  const f = $("#fill").checked;
+  x.beginPath();
+  if (tool === "linha") {
+    x.moveTo(sx, sy);
+    x.lineTo(p, q);
+    x.stroke();
+  } else if (tool === "ret") {
+    f
+      ? x.fillRect(sx, sy, p - sx, q - sy)
+      : x.strokeRect(sx, sy, p - sx, q - sy);
+  } else if (tool === "elipse") {
+    x.ellipse(
+      (sx + p) / 2,
+      (sy + q) / 2,
+      Math.abs(p - sx) / 2,
+      Math.abs(q - sy) / 2,
+      0,
+      0,
+      7,
+    );
+    f ? x.fill() : x.stroke();
+  } else if (tool === "grad") {
+    const g = x.createLinearGradient(sx, sy, p, q);
+    g.addColorStop(0, $("#col").value);
+    g.addColorStop(1, $("#col2").value);
+    x.fillStyle = g;
+    x.fillRect(0, 0, CW, CH);
+  }
+}
+cv.onpointerdown = (e) => {
+  const p = pos(e);
+  sx = p[0];
+  sy = p[1];
+  if (tool === "gotas") {
+    comp();
+    const d = vx.getImageData(sx | 0, sy | 0, 1, 1).data;
+    $("#col").value =
+      "#" +
+      [...d]
+        .slice(0, 3)
+        .map((v) => v.toString(16).padStart(2, "0"))
+        .join("");
+    return;
+  }
+  if (tool === "texto") {
+    const t = prompt("Texto:");
+    if (t) {
+      push();
+      setup();
+      x.font =
+        "600 " + (+$("#sz").value * 3 + 16) + "px Instrument Sans, sans-serif";
+      x.fillText(t, sx, sy);
+      draw();
+    }
+    return;
+  }
+  push();
+  if (tool === "balde") {
+    flood(sx, sy, $("#col").value);
+    draw();
+    return;
+  }
+  down = true;
+  cv.setPointerCapture(e.pointerId);
+  snap = x.getImageData(0, 0, CW, CH);
+  cx = sx;
+  cy = sy;
+  last = sp(sx, sy);
+  setup();
+  if (BR.includes(tool)) seg(last, last, +$("#sz").value, 1);
+  draw();
+};
+cv.onpointermove = (e) => {
+  if (!down) return;
+  const [p, q] = pos(e),
+    s = $("#sm").value / 100,
+    w = +$("#sz").value,
+    pr = e.pointerType === "pen" ? Math.max(0.2, e.pressure * 1.6) : 1;
+  if (BR.includes(tool)) {
+    cx += (p - cx) * (1 - s);
+    cy += (q - cy) * (1 - s);
+    const c = sp(cx, cy);
+    seg(last, c, w, pr);
+    last = c;
+  } else {
+    x.putImageData(snap, 0, 0);
+    setup();
+    x.lineWidth = w;
+    shape(p, q);
+  }
+  draw();
+};
+cv.onpointerup = () => {
+  down = false;
+  x.globalAlpha = 1;
+  x.globalCompositeOperation = "source-over";
+};
+$("#undo").onclick = () => {
+  const h = undo.pop();
+  if (h && L.includes(h.l)) {
+    const g = h.l.c.getContext("2d");
+    redo.push({ l: h.l, d: g.getImageData(0, 0, CW, CH) });
+    g.putImageData(h.d, 0, 0);
+    draw();
+  }
+};
+$("#redo").onclick = () => {
+  const h = redo.pop();
+  if (h && L.includes(h.l)) {
+    const g = h.l.c.getContext("2d");
+    undo.push({ l: h.l, d: g.getImageData(0, 0, CW, CH) });
+    g.putImageData(h.d, 0, 0);
+    draw();
+  }
+};
+$("#clear").onclick = () => {
+  push();
+  x.clearRect(0, 0, CW, CH);
+  if (ai === 0) {
+    x.fillStyle = "#fff";
+    x.fillRect(0, 0, CW, CH);
+  }
+  draw();
+};
+$("#swap").onclick = () => {
+  [$("#col").value, $("#col2").value] = [$("#col2").value, $("#col").value];
+};
+$("#zm").oninput = () =>
+  $("#wrap").style.setProperty("--z", $("#zm").value / 100);
+$("#grid").onchange = () =>
+  ($("#gd").style.display = $("#grid").checked ? "block" : "none");
+$("#fa").onclick = () => {
+  push();
+  const t = cvs(CW, CH);
+  t.getContext("2d").drawImage(L[ai].c, 0, 0);
+  x.globalCompositeOperation = "source-over";
+  x.globalAlpha = 1;
+  x.clearRect(0, 0, CW, CH);
+  x.filter = $("#fl").value;
+  x.drawImage(t, 0, 0);
+  x.filter = "none";
+  draw();
+};
+$("#im").onchange = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const im = new Image();
+  im.onload = () => {
+    const k = Math.min(CW / im.width, CH / im.height),
+      n = mkLayer("Imagem");
+    n.c
+      .getContext("2d")
+      .drawImage(
+        im,
+        (CW - im.width * k) / 2,
+        (CH - im.height * k) / 2,
+        im.width * k,
+        im.height * k,
+      );
+    L.splice(ai + 1, 0, n);
+    setActive(ai + 1);
+    draw();
+    URL.revokeObjectURL(im.src);
+  };
+  im.src = URL.createObjectURL(f);
+  e.target.value = "";
+};
+addEventListener("keydown", (e) => {
+  if (
+    !$("#studio").classList.contains("open") ||
+    ["INPUT", "SELECT"].includes(e.target.tagName)
+  )
+    return;
+  const k = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && (k === "z" || k === "y")) {
+    e.preventDefault();
+    k === "y" || e.shiftKey ? $("#redo").click() : $("#undo").click();
+    return;
+  }
+  const m = {
+    b: "pincel",
+    p: "lapis",
+    a: "aero",
+    e: "borracha",
+    g: "balde",
+    i: "gotas",
+    l: "linha",
+    r: "ret",
+    o: "elipse",
+    t: "texto",
+  };
+  if (m[k] && !e.ctrlKey && !e.metaKey) selTool(m[k]);
+  if (k === "[") $("#sz").value = +$("#sz").value - 4;
+  if (k === "]") $("#sz").value = +$("#sz").value + 4;
+  if (k === "x") $("#swap").click();
+});
+$("#artist").onclick = () => $("#studio").classList.add("open");
+$("#close").onclick = () => $("#studio").classList.remove("open");
+$("#save").onclick = async () => {
+  comp();
+  const o = cvs(CW, CH),
+    g = o.getContext("2d");
+  g.fillStyle = "#fff";
+  g.fillRect(0, 0, CW, CH);
+  g.drawImage(cv, 0, 0);
+  const im = cvs(640, 480);
+  im.getContext("2d").drawImage(o, 0, 0, 640, 480);
+  const a = {
+    title: $("#tt").value.trim() || "Sem título",
+    author: $("#au").value.trim() || "Autor anônimo",
+    style: $("#fs").value,
+    img: im.toDataURL("image/jpeg", 0.7),
+    ts: Date.now(),
+    uid,
+    tema: THEME,
+  };
+  if (!(await put("obras", a))) {
+    alert(
+      "Não foi possível salvar a obra. O armazenamento do navegador pode estar cheio.",
+    );
+    return;
+  }
+  $("#studio").classList.remove("open");
+  resetLayers();
+  $("#tt").value = "";
+  setTimeout(() => {
+    const n = arts.find((o) => o.id === a.id);
+    if (n) goTo(n);
+  }, 900);
+};
+resetLayers();
+$("#theme").textContent = "Tema desta semana: " + THEME + ".";
+$("#th").textContent = "Tema da semana: " + THEME;
+refresh();
+mode();
+(async () => {
+  try {
+    const c = await claude.use("db"),
+      u = await claude.use("user");
+    if (!c || !u) return;
+    uid = await u.id();
+    canMod = u.canEdit();
+    db = c;
+    shared = true;
+    mode();
+    ["obras", "likes", "coms"].forEach((k) =>
+      db.collection(k).onSnapshot((sn) => {
+        D[k] = sn.docs.map((d) => ({ ...d.data(), id: d.id }));
+        refresh();
+      }),
+    );
+  } catch (e) {
+    db = null;
+    shared = false;
+  }
+})();
