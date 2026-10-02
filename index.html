@@ -1,187 +1,161 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-    <title>Galeria ETEC Lauro Gomes</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Instrument+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <canvas id="c"></canvas>
-    <header id="top">
-      <b>Galeria ETEC Lauro Gomes</b>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Galeria ETEC Lauro Gomes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+
+  <!-- Onde o 3D é desenhado (a galeria e a sala do ranking) -->
+  <canvas id="c"></canvas>
+
+  <!-- ENTRADA: única tela antes da galeria -->
+  <section id="entrada">
+    <span>Galeria ETEC Lauro Gomes</span>
+    <button id="btn-entrar" class="pri">Entrar</button>
+  </section>
+
+  <!-- TOPO: botões principais -->
+  <header id="topo">
+    <b>Galeria ETEC Lauro Gomes</b>
+    <div>
+      <button id="btn-ranking">Ranking</button>
+      <button id="btn-criar" class="pri">Criar uma obra</button>
+    </div>
+  </header>
+
+  <!-- ETIQUETA: informações da obra clicada, curtir e comentar -->
+  <aside id="etiqueta">
+    <h2 id="et-titulo"></h2>
+    <p id="et-autor"></p>
+    <div class="linha-botoes">
+      <button id="btn-curtir"></button>
+      <button id="btn-voltar">Voltar</button>
+      <button id="btn-remover" hidden>Remover</button>
+    </div>
+    <ul id="et-comentarios"></ul>
+    <div class="linha-comentar">
+      <input id="com-nome" placeholder="Nome" maxlength="20" style="max-width:88px">
+      <input id="com-texto" placeholder="Deixe um comentário" maxlength="140">
+      <button id="btn-comentar">Enviar</button>
+    </div>
+  </aside>
+
+  <div id="progresso"><i></i></div>
+  <div id="aviso"></div>
+
+  <!-- RANKING: textos que aparecem por cima da sala do ranking -->
+  <div id="rk-ui">
+    <h2 id="rk-titulo">Sala do Ranking</h2>
+    <button id="rk-sair-topo">Sair</button>
+    <div id="rk-legenda">
+      <div id="rk-lugar"></div>
+      <div id="rk-obra"></div>
+      <div id="rk-autor"></div>
+    </div>
+    <div id="rk-botoes">
+      <button id="rk-ver">Ver a obra campeã na galeria</button>
+      <button id="rk-sair">Voltar à galeria</button>
+    </div>
+    <div id="rk-dica">Role o mouse (ou arraste) para avançar · Esc para sair</div>
+  </div>
+  <div id="clarao"></div>
+  <div id="cortina"></div>
+
+  <!-- ESTÚDIO: tela de desenho -->
+  <div id="estudio">
+    <div id="est-topo">
+      <strong>Estúdio</strong>
+      <button id="btn-desfazer">Desfazer</button>
+      <button id="btn-refazer">Refazer</button>
+      <button id="btn-limpar">Limpar camada</button>
+      <label class="chk"><input type="checkbox" id="chk-grade">Grade</label>
+      <label class="chk"><input type="checkbox" id="chk-preencher">Preencher formas</label>
+      <button id="btn-fechar">Fechar</button>
+    </div>
+
+    <nav id="est-ferramentas"></nav>
+
+    <div id="est-palco">
+      <div id="est-area">
+        <canvas id="tela" width="1200" height="900"></canvas>
+        <div id="grade"></div>
+      </div>
+    </div>
+
+    <div id="est-painel">
+      <p id="tema-semana" style="margin:0;font:500 17px/1.3 var(--serif)"></p>
+
       <div>
-        <button id="rkb">Ranking</button
-        ><button id="artist" class="pri">Criar uma obra</button>
+        <div class="duas-cores">
+          <input type="color" id="cor1" value="#1d3fa8" title="Cor principal">
+          <input type="color" id="cor2" value="#f0b429" title="Cor secundária (gradiente)">
+          <button id="btn-trocar">Trocar</button>
+        </div>
+        <div id="paleta"></div>
       </div>
-    </header>
-    <div id="rk"></div>
-    <div id="pod">
-      <button id="pc">Fechar</button>
-      <h2>Obras mais curtidas</h2>
-      <div id="pdm"></div>
-    </div>
-    <div id="mode"></div>
-    <aside id="lbl">
-      <h2></h2>
-      <p></p>
-      <div class="lk">
-        <button id="like"></button><button id="back">Voltar</button
-        ><button id="del" hidden>Remover</button>
-      </div>
-      <ul id="cm"></ul>
-      <div class="row">
-        <input
-          id="cn"
-          placeholder="Nome"
-          maxlength="20"
-          style="max-width: 88px"
-        /><input
-          id="ct"
-          placeholder="Deixe um comentário"
-          maxlength="140"
-        /><button id="cs">Enviar</button>
-      </div>
-    </aside>
-    <div id="bar"><i></i></div>
-    <section id="hero">
-      <h1>Galeria Lauro Gomes</h1>
-      <p>
-        Obras dos alunos da ETEC, expostas numa sala que você percorre. Curta,
-        comente e pendure a sua.
-      </p>
-      <p id="theme" style="margin: -8px 0 28px; font-weight: 600"></p>
-      <button id="enter" class="pri">Entrar na sala</button>
-    </section>
 
-    <div id="studio">
-      <div id="sh">
-        <strong>Estúdio</strong><button id="undo">Desfazer</button
-        ><button id="redo">Refazer</button
-        ><button id="clear">Limpar camada</button
-        ><label class="chk"><input type="checkbox" id="grid" />Grade</label
-        ><label class="chk"
-          ><input type="checkbox" id="fill" />Preencher formas</label
-        ><button id="close">Fechar</button>
-      </div>
-      <nav id="tl"></nav>
-      <div id="stage">
-        <div id="wrap">
-          <canvas id="cv" width="1200" height="900"></canvas>
-          <div id="gd"></div>
-        </div>
-      </div>
-      <div id="pp">
-        <p id="th" style="margin: 0; font: 500 17px/1.3 var(--serif)"></p>
-        <div>
-          <div class="two">
-            <input type="color" id="col" value="#1d3fa8" title="Cor 1" /><input
-              type="color"
-              id="col2"
-              value="#f0b429"
-              title="Cor 2"
-            /><button id="swap">Trocar</button>
-          </div>
-          <div id="sw" style="margin-top: 8px"></div>
-        </div>
-        <label
-          >Tamanho <input type="range" id="sz" min="1" max="120" value="12"
-        /></label>
-        <label
-          >Opacidade <input type="range" id="op" min="5" max="100" value="100"
-        /></label>
-        <label
-          >Estabilização do traço
-          <input type="range" id="sm" min="0" max="90" value="30"
-        /></label>
-        <label
-          >Simetria<select id="sy">
-            <option value="0">Nenhuma</option>
-            <option value="1">Espelho vertical</option>
-            <option value="2">Espelho horizontal</option>
-            <option value="3">Quatro lados</option>
-          </select></label
-        >
-        <label
-          >Zoom <input type="range" id="zm" min="40" max="200" value="100"
-        /></label>
-        <div>
-          <b style="font-size: 13px">Camadas</b>
-          <ul id="ly"></ul>
-          <div class="gb">
-            <button id="ladd">Nova</button><button id="ldup">Duplicar</button
-            ><button id="ldel">Excluir</button><button id="lup">Subir</button
-            ><button id="ldn">Descer</button>
-          </div>
-          <label style="margin-top: 8px"
-            >Mistura da camada<select id="bl">
-              <option value="source-over">Normal</option>
-              <option value="multiply">Multiplicar</option>
-              <option value="screen">Tela</option>
-              <option value="overlay">Sobrepor</option>
-              <option value="darken">Escurecer</option>
-              <option value="lighten">Clarear</option>
-              <option value="color-dodge">Subexpor</option>
-            </select></label
-          >
-          <label
-            >Opacidade da camada
-            <input type="range" id="lo" min="0" max="100" value="100"
-          /></label>
-        </div>
-        <div>
-          <label
-            >Filtro na camada<select id="fl">
-              <option value="blur(5px)">Desfocar</option>
-              <option value="grayscale(1)">Tons de cinza</option>
-              <option value="invert(1)">Inverter cores</option>
-              <option value="sepia(.9)">Sépia</option>
-              <option value="saturate(2)">Saturar</option>
-              <option value="hue-rotate(90deg)">Girar matiz</option>
-              <option value="brightness(1.25)">Clarear</option>
-              <option value="contrast(1.4)">Contraste</option>
-            </select></label
-          ><button id="fa" style="margin-top: 6px">Aplicar filtro</button>
-        </div>
-        <label
-          >Importar imagem<input type="file" id="im" accept="image/*"
-        /></label>
-        <label
-          >Moldura<select id="fs">
-            <option value="oak">Carvalho</option>
-            <option value="black">Preta</option>
-            <option value="white">Branca</option>
-            <option value="brass">Latão</option>
-          </select></label
-        >
-        <label
-          >Título<input
-            type="text"
-            id="tt"
-            placeholder="Nome da obra"
-            maxlength="40"
-        /></label>
-        <label
-          >Autor<input
-            type="text"
-            id="au"
-            placeholder="Seu nome"
-            maxlength="30"
-        /></label>
-        <button id="save" class="pri">Pendurar na galeria</button>
-      </div>
-    </div>
+      <label>Tamanho <input type="range" id="tamanho" min="1" max="120" value="12"></label>
+      <label>Opacidade <input type="range" id="opacidade" min="5" max="100" value="100"></label>
+      <label>Estabilização do traço <input type="range" id="estab" min="0" max="90" value="30"></label>
+      <label>Simetria
+        <select id="simetria">
+          <option value="0">Nenhuma</option>
+          <option value="1">Espelho vertical</option>
+          <option value="2">Espelho horizontal</option>
+          <option value="3">Quatro lados</option>
+        </select>
+      </label>
+      <label>Zoom <input type="range" id="zoom" min="40" max="200" value="100"></label>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="script.js"></script>
-  </body>
+      <div>
+        <b style="font-size:13px">Camadas</b>
+        <ul id="lista-camadas"></ul>
+        <div class="botoes-camada">
+          <button id="cam-nova">Nova</button><button id="cam-dup">Duplicar</button><button id="cam-del">Excluir</button>
+          <button id="cam-sobe">Subir</button><button id="cam-desce">Descer</button>
+        </div>
+        <label style="margin-top:8px">Mistura da camada
+          <select id="cam-mistura">
+            <option value="source-over">Normal</option><option value="multiply">Multiplicar</option><option value="screen">Tela</option>
+            <option value="overlay">Sobrepor</option><option value="darken">Escurecer</option><option value="lighten">Clarear</option><option value="color-dodge">Subexpor</option>
+          </select>
+        </label>
+        <label>Opacidade da camada <input type="range" id="cam-opac" min="0" max="100" value="100"></label>
+      </div>
+
+      <div>
+        <label>Filtro na camada
+          <select id="filtro">
+            <option value="blur(5px)">Desfocar</option><option value="grayscale(1)">Tons de cinza</option><option value="invert(1)">Inverter cores</option>
+            <option value="sepia(.9)">Sépia</option><option value="saturate(2)">Saturar</option><option value="hue-rotate(90deg)">Girar matiz</option>
+            <option value="brightness(1.25)">Clarear</option><option value="contrast(1.4)">Contraste</option>
+          </select>
+        </label>
+        <button id="btn-filtro" style="margin-top:6px">Aplicar filtro</button>
+      </div>
+
+      <label>Importar imagem <input type="file" id="arq-imagem" accept="image/*"></label>
+      <label>Moldura
+        <select id="moldura"><option value="oak">Carvalho</option><option value="black">Preta</option><option value="white">Branca</option><option value="brass">Latão</option></select>
+      </label>
+      <label>Título <input type="text" id="obra-titulo" placeholder="Nome da obra" maxlength="40"></label>
+      <label>Autor <input type="text" id="obra-autor" placeholder="Seu nome" maxlength="30"></label>
+      <button id="btn-salvar" class="pri">Pendurar na galeria</button>
+    </div>
+  </div>
+
+  <!-- Three.js (biblioteca de 3D) e depois os nossos arquivos, NESTA ordem -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/dados.js"></script>    <!-- o que fica salvo + funções comuns -->
+  <script src="js/galeria.js"></script>  <!-- corredor 3D, molduras, escultura -->
+  <script src="js/ranking.js"></script>  <!-- sala do ranking (chão rachando, pódios) -->
+  <script src="js/estudio.js"></script>  <!-- tela de desenho -->
+  <script src="js/inicio.js"></script>   <!-- liga tudo e dá a partida -->
+</body>
 </html>
