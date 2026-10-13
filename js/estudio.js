@@ -26,6 +26,17 @@ let fotoDaCamada = null;           // cópia da camada no início do traço (par
 let historico = [], refeitos = [];  // pilhas de desfazer / refazer
 let pedidoDeQuadro = 0;
 
+const moduloRosa = document.createElement('div');
+moduloRosa.className = 'paint-glow-module';
+moduloRosa.innerHTML = `
+  <span class="paint-glow-module__dot" aria-hidden="true"></span>
+  <span class="paint-glow-module__content">
+    <strong>Paint Mode</strong>
+    <small>Creative Glow</small>
+  </span>
+`;
+$('#est-ferramentas').append(moduloRosa);
+
 // ---------- Camadas ----------
 function novaCamada(nome, branca) {
   const canvas = criarCanvas(LARG, ALT);
@@ -102,7 +113,7 @@ const LISTA_FERRAMENTAS = [
 const ICONES_FERRAMENTAS = {
   pincel: '<path d="M4 15c1.2-2.8 2.8-5.2 5.8-7.3L14.6 3c1.3-1.3 3.5-1.3 4.8 0s1.3 3.5 0 4.8l-4.8 4.8c-2.1 3-4.5 4.6-7.3 5.8L4 15Z"/><path d="M7 17c-.9 1.6-2 2.6-4 3 1.2-1.8 1.4-3.3 1-5" />',
   lapis: '<path d="m4 16 8.5-8.5 3 3L7 19H4v-3Z"/><path d="m13 7 2-2a2.1 2.1 0 0 1 3 0l1 1a2.1 2.1 0 0 1 0 3l-2 2" />',
-  aero: '<path d="M9 4h6v5"/><path d="M12 9v6"/><path d="M8 14h8"/><circle cx="5" cy="17.5" r="1"/><circle cx="9" cy="18.5" r=".8"/><circle cx="13" cy="18" r=".9"/><circle cx="17" cy="17.3" r=".8"/>',
+  aero: '<path d="M9 4h6v5"/><path d="M12 9v6"/><path d="M8 14h8"/><circle cx="5" cy="17.5" r="1"/><circle cx="9" cy="18.5" r=".8"/><circle cx="13" cy="18" r=".9"/><circle cx="17" cy="17.3" r=".8" />',
   marcador: '<path d="m5 13 6-6 6 6-6 6-6-6Z"/><path d="m11 7 2-2h3l1 1v3l-2 2" />',
   caneta: '<path d="m6 18 2.5-6.5L15 5l4 4-6.5 6.5L6 18Z"/><path d="M15 5 17.5 2.5 21 6l-2.5 2.5" />',
   spray: '<path d="M6 6h12v7H6z"/><path d="M10 6V3h4v3"/><circle cx="9" cy="17" r="1"/><circle cx="12.5" cy="18.5" r=".8"/><circle cx="16" cy="17.5" r=".9"/>',
@@ -116,7 +127,7 @@ const ICONES_FERRAMENTAS = {
   texto: '<path d="M5 6h14"/><path d="M12 6v12"/><path d="M8.5 18h7" />',
 };
 function iconeFerramenta(nome) {
-  return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONES_FERRAMENTAS[nome] || '<circle cx="12" cy="12" r="6" />'}</g></svg>`;
+  return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONES_FERRAMENTAS[nome] || ''}</g></svg>`;
 }
 function escolherFerramenta(nome) {
   ferramenta = nome;
@@ -130,10 +141,11 @@ LISTA_FERRAMENTAS.forEach(([nome, rotulo]) => {
   botao.onclick = () => escolherFerramenta(nome);
   $('#est-ferramentas').append(botao);
 });
+
 escolherFerramenta('pincel');
 
 ['#1c1f24', '#ffffff', '#b3202a', '#e2661f', '#f0b429', '#2f8f4e', '#1d3fa8', '#7a3d8c',
- '#8a6238', '#8d949c', '#f2a7b5', '#9ad0e8', '#c8d96f', '#0e5a5a', '#5b3a1e', '#e9dcc4'].forEach((cor) => {
+  '#8a6238', '#8d949c', '#f2a7b5', '#9ad0e8', '#c8d96f', '#0e5a5a', '#5b3a1e', '#e9dcc4'].forEach((cor) => {
   const botao = document.createElement('button');
   botao.style.background = cor; botao.title = cor;
   botao.onclick = () => { $('#cor1').value = cor; };
