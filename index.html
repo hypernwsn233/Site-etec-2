@@ -10,17 +10,11 @@
   <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
-
-  <!-- Onde o 3D é desenhado (a galeria e a sala do ranking) -->
   <canvas id="c"></canvas>
-
-  <!-- ENTRADA: única tela antes da galeria -->
   <section id="entrada">
     <span>Galeria ETEC Lauro Gomes</span>
     <button id="btn-entrar" class="pri">Entrar</button>
   </section>
-
-  <!-- TOPO: botões principais -->
   <header id="topo">
     <b>Galeria ETEC Lauro Gomes</b>
     <div>
@@ -28,8 +22,6 @@
       <button id="btn-criar" class="pri">Criar uma obra</button>
     </div>
   </header>
-
-  <!-- ETIQUETA: informações da obra clicada, curtir e comentar -->
   <aside id="etiqueta">
     <h2 id="et-titulo"></h2>
     <p id="et-autor"></p>
@@ -45,11 +37,8 @@
       <button id="btn-comentar">Enviar</button>
     </div>
   </aside>
-
   <div id="progresso"><i></i></div>
   <div id="aviso"></div>
-
-  <!-- RANKING: textos que aparecem por cima da sala do ranking -->
   <div id="rk-ui">
     <h2 id="rk-titulo">Sala do Ranking</h2>
     <button id="rk-sair-topo">Sair</button>
@@ -66,8 +55,6 @@
   </div>
   <div id="clarao"></div>
   <div id="cortina"></div>
-
-  <!-- ESTÚDIO: tela de desenho -->
   <div id="estudio">
     <div id="est-topo">
       <strong>Estúdio</strong>
@@ -78,19 +65,15 @@
       <label class="chk"><input type="checkbox" id="chk-preencher">Preencher formas</label>
       <button id="btn-fechar">Fechar</button>
     </div>
-
     <nav id="est-ferramentas"></nav>
-
     <div id="est-palco">
       <div id="est-area">
         <canvas id="tela" width="1200" height="900"></canvas>
         <div id="grade"></div>
       </div>
     </div>
-
     <div id="est-painel">
       <p id="tema-semana" style="margin:0;font:500 17px/1.3 var(--serif)"></p>
-
       <div>
         <div class="duas-cores">
           <input type="color" id="cor1" value="#1d3fa8" title="Cor principal">
@@ -99,7 +82,6 @@
         </div>
         <div id="paleta"></div>
       </div>
-
       <label>Tamanho <input type="range" id="tamanho" min="1" max="120" value="12"></label>
       <label>Opacidade <input type="range" id="opacidade" min="5" max="100" value="100"></label>
       <label>Estabilização do traço <input type="range" id="estab" min="0" max="90" value="30"></label>
@@ -112,7 +94,6 @@
         </select>
       </label>
       <label>Zoom <input type="range" id="zoom" min="40" max="200" value="100"></label>
-
       <div>
         <b style="font-size:13px">Camadas</b>
         <ul id="lista-camadas"></ul>
@@ -128,7 +109,6 @@
         </label>
         <label>Opacidade da camada <input type="range" id="cam-opac" min="0" max="100" value="100"></label>
       </div>
-
       <div>
         <label>Filtro na camada
           <select id="filtro">
@@ -139,7 +119,6 @@
         </label>
         <button id="btn-filtro" style="margin-top:6px">Aplicar filtro</button>
       </div>
-
       <label>Importar imagem <input type="file" id="arq-imagem" accept="image/*"></label>
       <label>Moldura
         <select id="moldura"><option value="oak">Carvalho</option><option value="black">Preta</option><option value="white">Branca</option><option value="brass">Latão</option></select>
@@ -149,13 +128,12 @@
       <button id="btn-salvar" class="pri">Pendurar na galeria</button>
     </div>
   </div>
-
-  <!-- Three.js (biblioteca de 3D) e depois os nossos arquivos, NESTA ordem -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="js/dados.js"></script>    <!-- o que fica salvo + funções comuns -->
-  <script src="js/galeria.js"></script>  <!-- corredor 3D, molduras, escultura -->
-  <script src="js/ranking.js"></script>  <!-- sala do ranking (chão rachando, pódios) -->
-  <script src="js/estudio.js"></script>  <!-- tela de desenho -->
-  <script src="js/inicio.js"></script>   <!-- liga tudo e dá a partida -->
+  <script src="js/dados.js"></script>
+  <script src="js/galeria.js"></script>
+  <script src="js/ranking.js"></script>
+  <script src="js/estudio.js"></script>
+  <script src="js/moldura-glitter.js"></script>
+  <script src="js/inicio.js"></script>
 </body>
 </html>
