@@ -89,14 +89,61 @@ const texturaSombra = (function () {
 })();
 
 // ---------- 3. As molduras ----------
-// Cores/material de cada estilo: [cor, rugosidade, metal, brilho emissivo]
+// Cores/material de cada estilo: [cor, rugosidade, metal]
+// (a moldura "pink" usa o material de glitter, criado mais abaixo)
 const MOLDURAS = {
-  oak:   [0x8a6238, 0.7, 0, 0x000000],
-  black: [0x18191b, 0.5, 0.2, 0x000000],
-  white: [0xf3f3f1, 0.6, 0, 0x000000],
-  brass: [0xb08d4a, 0.35, 0.85, 0x000000],
-  pink:  [0xff4fb6, 0.22, 0.35, 0xff1f9f],
+  oak:   [0x8a6238, 0.7, 0],
+  black: [0x18191b, 0.5, 0.2],
+  white: [0xf3f3f1, 0.6, 0],
+  brass: [0xb08d4a, 0.35, 0.85],
+  pink:  [0xff5fb8, 0.3, 0.55],
 };
+
+// ---- Glitter rosa: textura de fundo rosa cheia de pontinhos que brilham ----
+const glitter = {
+  textura: (() => {
+    const c = criarCanvas(256, 256), g = c.getContext('2d');
+    const fundo = g.createLinearGradient(0, 0, 256, 256);
+    fundo.addColorStop(0, '#ff8fd0'); fundo.addColorStop(0.5, '#ff3fa6'); fundo.addColorStop(1, '#ff7cc8');
+    g.fillStyle = fundo; g.fillRect(0, 0, 256, 256);
+    const cores = ['#ffffff', '#ffd6f1', '#ff2f9c', '#fff2a8', '#ffa6dc'];
+    for (let i = 0; i < 1100; i++) {                 // grãos de glitter
+      g.fillStyle = cores[(Math.random() * cores.length) | 0];
+      g.globalAlpha = 0.5 + Math.random() * 0.5;
+      const r = 0.6 + Math.random() * 1.5;
+      g.beginPath(); g.arc(Math.random() * 256, Math.random() * 256, r, 0, 7); g.fill();
+    }
+    g.globalAlpha = 1; g.strokeStyle = '#fff'; g.lineWidth = 1.2;
+    for (let i = 0; i < 40; i++) {                   // estrelinhas de 4 pontas
+      const x = Math.random() * 256, y = Math.random() * 256, k = 2 + Math.random() * 3;
+      g.beginPath(); g.moveTo(x - k, y); g.lineTo(x + k, y); g.moveTo(x, y - k); g.lineTo(x, y + k); g.stroke();
+    }
+    return c;
+  })(),
+  // Estrela suave usada nos brilhinhos que piscam ao redor da moldura
+  estrela: (() => {
+    const c = criarCanvas(64, 64), g = c.getContext('2d');
+    const halo = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    halo.addColorStop(0, 'rgba(255,255,255,1)'); halo.addColorStop(0.25, 'rgba(255,214,241,.7)'); halo.addColorStop(1, 'rgba(255,214,241,0)');
+    g.fillStyle = halo; g.fillRect(0, 0, 64, 64);
+    g.strokeStyle = '#fff'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(32, 2); g.lineTo(32, 62); g.moveTo(2, 32); g.lineTo(62, 32); g.stroke();
+    return paraTextura(c);
+  })(),
+  materiais: [],   // um material por ripa (para o glitter não esticar)
+  brilhos: [],     // as estrelinhas que piscam
+};
+
+function materialGlitter(largura, altura) {
+  const m = new THREE.MeshStandardMaterial({
+    map: paraTextura(glitter.textura, [Math.max(1, largura / 0.45), Math.max(1, altura / 0.45)]),
+    color: 0xffffff, roughness: 0.3, metalness: 0.55,
+    emissive: 0xff2f9c, emissiveIntensity: 0.12,
+  });
+  m.userData.fase = Math.random() * 6.28;
+  glitter.materiais.push(m);
+  return m;
+}
 
 let ARTES = [];
 const molduraObjetos = [];
@@ -124,23 +171,29 @@ function criarMoldura(entrada, posicao) {
   const lado = posicao % 2 ? 1 : -1;
   const z = -5 - Math.floor(posicao / 2) * 6;
   const grupo = new THREE.Group();
-  const [cor, rugosidade, metal, emissive] = MOLDURAS[entrada.obra.moldura] || MOLDURAS.oak;
-  const materialMoldura = new THREE.MeshStandardMaterial({
-    color: cor,
-    roughness: rugosidade,
-    metalness: metal,
-    emissive,
-    emissiveIntensity: emissive ? 0.8 : 0,
-  });
+  const ehRosa = entrada.obra.moldura === 'pink';
+  const [cor, rugosidade, metal] = MOLDURAS[entrada.obra.moldura] || MOLDURAS.oak;
+  const materialMoldura = ehRosa ? null : new THREE.MeshStandardMaterial({ color: cor, roughness: rugosidade, metalness: metal });
 
   const espessura = 0.14, largura = 3.3, altura = 2.6;
   [[0, altura / 2 - espessura / 2, largura, espessura], [0, -altura / 2 + espessura / 2, largura, espessura],
    [-largura / 2 + espessura / 2, 0, espessura, altura], [largura / 2 - espessura / 2, 0, espessura, altura]]
     .forEach(([px, py, w, h]) => {
-      const ripa = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.14), materialMoldura);
+      const ripa = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.14), ehRosa ? materialGlitter(w, h) : materialMoldura);
       ripa.position.set(px, py, 0.07);
       grupo.add(ripa);
     });
+
+  if (ehRosa) {                       // brilhinhos que piscam em volta da moldura
+    for (let i = 0; i < 16; i++) {
+      const brilho = new THREE.Sprite(new THREE.SpriteMaterial({ map: glitter.estrela, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+      const lado = (Math.random() * 4) | 0, u = Math.random() - 0.5;
+      brilho.position.set(lado < 2 ? u * largura : (lado === 2 ? -1 : 1) * largura / 2, lado < 2 ? (lado ? -1 : 1) * altura / 2 : u * altura, 0.17);
+      brilho.userData = { fase: Math.random() * 6.28, vel: 1.5 + Math.random() * 2.5, tam: 0.1 + Math.random() * 0.12 };
+      grupo.add(brilho);
+      glitter.brilhos.push(brilho);
+    }
+  }
 
   const passepartout = new THREE.Mesh(new THREE.PlaneGeometry(largura - 2 * espessura, altura - 2 * espessura),
     new THREE.MeshStandardMaterial({ color: 0xfbfbf9, roughness: 1 }));
@@ -190,6 +243,7 @@ function atualizarGaleria() {
     const idAberto = entradaAberta && entradaAberta.obra.id;
 
     molduraObjetos.splice(0).forEach((m) => S.remove(m));
+    glitter.materiais.length = 0; glitter.brilhos.length = 0;
     areasClicaveis.length = 0;
 
     const livre = () => ({ vazio: true, obra: { id: '', titulo: 'Espaço livre', autor: 'Clique para criar', moldura: 'white' } });
@@ -423,6 +477,12 @@ function atualizarCorredor(t) {
     const alvo = (a === sobMouse || a.grupo === obraEmFoco) ? 1.03 : 1;
     a.grupo.userData.escala += (alvo - a.grupo.userData.escala) * 0.1;
     a.grupo.scale.setScalar(a.grupo.userData.escala);
+  });
+
+  glitter.materiais.forEach((m) => { m.emissiveIntensity = 0.14 + 0.1 * Math.sin(t * 3 + m.userData.fase); });
+  glitter.brilhos.forEach((b) => {
+    const k = Math.max(0, Math.sin(t * b.userData.vel + b.userData.fase));
+    b.material.opacity = k; b.scale.setScalar(b.userData.tam * (0.5 + k));
   });
 
   if (escultura.girante) {
