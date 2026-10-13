@@ -113,55 +113,6 @@ body.rk #topo, body.rk #etiqueta, body.rk #progresso { display: none; }
 #est-ferramentas button.on { background: var(--tinta); color: #fff; }
 #est-ferramentas button:hover:not(.on) { background: var(--papel); }
 
-.paint-glow-module {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  margin-bottom: 4px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 99, 184, 0.65);
-  background: linear-gradient(135deg, rgba(255, 125, 196, 0.28), rgba(255, 79, 182, 0.7));
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 0 18px rgba(255, 79, 182, 0.7), 0 0 28px rgba(255, 79, 182, 0.45);
-  animation: pulsePink 2.2s ease-in-out infinite;
-}
-
-@keyframes pulsePink {
-  0%, 100% { transform: translateY(0); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 0 12px rgba(255, 79, 182, 0.6), 0 0 24px rgba(255, 79, 182, 0.35); }
-  50% { transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22), 0 0 20px rgba(255, 79, 182, 0.8), 0 0 36px rgba(255, 79, 182, 0.6); }
-}
-
-.paint-glow-module__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.95), 0 0 16px rgba(255, 116, 201, 0.9);
-  flex: none;
-}
-
-.paint-glow-module__content {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  color: #fff;
-}
-
-.paint-glow-module__content strong {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  line-height: 1.1;
-}
-
-.paint-glow-module__content small {
-  font-size: 10px;
-  opacity: 0.9;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 #est-palco { display: flex; padding: 20px; min-width: 0; min-height: 0; overflow: auto; }
 /* largura da tela = o que couber, vezes o zoom (--z) */
 #est-area { position: relative; margin: auto; flex: none; line-height: 0; width: calc(min(100%, (100vh - 130px) * 1.3333) * var(--z, 1)); }
@@ -184,7 +135,6 @@ body.rk #topo, body.rk #etiqueta, body.rk #progresso { display: none; }
   #est-topo { grid-column: 1; }
   #est-ferramentas { flex-direction: row; border-right: 0; border-bottom: 1px solid var(--linha); }
   #est-ferramentas button { white-space: nowrap; padding: 8px 10px; }
-  .paint-glow-module { min-width: 126px; }
   #est-painel { border-left: 0; border-top: 1px solid var(--linha); max-height: 38vh; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
