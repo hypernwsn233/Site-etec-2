@@ -99,13 +99,34 @@ const LISTA_FERRAMENTAS = [
   ['spray', 'Spray'], ['borracha', 'Borracha'], ['balde', 'Balde de tinta'], ['gotas', 'Conta-gotas'],
   ['linha', 'Linha'], ['ret', 'Retângulo'], ['elipse', 'Elipse'], ['grad', 'Gradiente'], ['texto', 'Texto'],
 ];
+const ICONES_FERRAMENTAS = {
+  pincel: '<path d="M4 15c1.2-2.8 2.8-5.2 5.8-7.3L14.6 3c1.3-1.3 3.5-1.3 4.8 0s1.3 3.5 0 4.8l-4.8 4.8c-2.1 3-4.5 4.6-7.3 5.8L4 15Z"/><path d="M7 17c-.9 1.6-2 2.6-4 3 1.2-1.8 1.4-3.3 1-5" />',
+  lapis: '<path d="m4 16 8.5-8.5 3 3L7 19H4v-3Z"/><path d="m13 7 2-2a2.1 2.1 0 0 1 3 0l1 1a2.1 2.1 0 0 1 0 3l-2 2" />',
+  aero: '<path d="M9 4h6v5"/><path d="M12 9v6"/><path d="M8 14h8"/><circle cx="5" cy="17.5" r="1"/><circle cx="9" cy="18.5" r=".8"/><circle cx="13" cy="18" r=".9"/><circle cx="17" cy="17.3" r=".8"/>',
+  marcador: '<path d="m5 13 6-6 6 6-6 6-6-6Z"/><path d="m11 7 2-2h3l1 1v3l-2 2" />',
+  caneta: '<path d="m6 18 2.5-6.5L15 5l4 4-6.5 6.5L6 18Z"/><path d="M15 5 17.5 2.5 21 6l-2.5 2.5" />',
+  spray: '<path d="M6 6h12v7H6z"/><path d="M10 6V3h4v3"/><circle cx="9" cy="17" r="1"/><circle cx="12.5" cy="18.5" r=".8"/><circle cx="16" cy="17.5" r=".9"/>',
+  borracha: '<path d="m7 14 5-7h5l2 2-5 7H9l-2-2Z"/><path d="M4 18h9" />',
+  balde: '<path d="m6 9 5-5 7 7-5 5-7-7Z"/><path d="M15.5 17c1 0 1.8.8 1.8 1.8S16.5 21 15.5 21s-1.8-.8-1.8-1.8.8-2.2 1.8-2.2Z" />',
+  gotas: '<path d="M12 3s5 5.3 5 9a5 5 0 1 1-10 0c0-3.7 5-9 5-9Z"/><path d="M9.5 13.5c.5 1.3 1.4 2 2.7 2.5" />',
+  linha: '<path d="M5 18 19 6"/><circle cx="5" cy="18" r="1.4"/><circle cx="19" cy="6" r="1.4"/>',
+  ret: '<rect x="5" y="6" width="14" height="12" rx="1.5" />',
+  elipse: '<ellipse cx="12" cy="12" rx="7" ry="5.5" />',
+  grad: '<path d="M5 6h14v12H5z"/><path d="M5 18 19 6"/><path d="M8 15h0M12 12h0M16 9h0" />',
+  texto: '<path d="M5 6h14"/><path d="M12 6v12"/><path d="M8.5 18h7" />',
+};
+function iconeFerramenta(nome) {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ICONES_FERRAMENTAS[nome] || '<circle cx="12" cy="12" r="6" />'}</g></svg>`;
+}
 function escolherFerramenta(nome) {
   ferramenta = nome;
   document.querySelectorAll('#est-ferramentas button').forEach((b) => b.classList.toggle('on', b.dataset.k === nome));
 }
 LISTA_FERRAMENTAS.forEach(([nome, rotulo]) => {
   const botao = document.createElement('button');
-  botao.textContent = rotulo; botao.dataset.k = nome;
+  botao.innerHTML = `${iconeFerramenta(nome)}<span>${rotulo}</span>`;
+  botao.dataset.k = nome;
+  botao.title = rotulo;
   botao.onclick = () => escolherFerramenta(nome);
   $('#est-ferramentas').append(botao);
 });
