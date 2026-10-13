@@ -26,17 +26,6 @@ let fotoDaCamada = null;           // cópia da camada no início do traço (par
 let historico = [], refeitos = [];  // pilhas de desfazer / refazer
 let pedidoDeQuadro = 0;
 
-const moduloRosa = document.createElement('div');
-moduloRosa.className = 'paint-glow-module';
-moduloRosa.innerHTML = `
-  <span class="paint-glow-module__dot" aria-hidden="true"></span>
-  <span class="paint-glow-module__content">
-    <strong>Paint Mode</strong>
-    <small>Creative Glow</small>
-  </span>
-`;
-$('#est-ferramentas').append(moduloRosa);
-
 // ---------- Camadas ----------
 function novaCamada(nome, branca) {
   const canvas = criarCanvas(LARG, ALT);
