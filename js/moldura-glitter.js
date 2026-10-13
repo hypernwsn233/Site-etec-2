@@ -4,10 +4,7 @@
   const botaoSalvar = document.querySelector('#btn-salvar');
   if (!seletor || !botaoSalvar) return;
 
-  const opcao = document.createElement('option');
-  opcao.value = 'pink-glitter';
-  opcao.textContent = 'Rosa com glitter ✨';
-  seletor.append(opcao);
+  // A opção é declarada diretamente no HTML.
 
   // Executa antes do salvamento normal e desenha na camada ativa,
   // para que juntarCamadas() inclua a moldura na imagem final.
