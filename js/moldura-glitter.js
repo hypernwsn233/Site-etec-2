@@ -2,24 +2,21 @@
 (() => {
   const seletor = document.querySelector('#moldura');
   const botaoSalvar = document.querySelector('#btn-salvar');
-  const tela = document.querySelector('#tela');
-  if (!seletor || !botaoSalvar || !tela) return;
+  if (!seletor || !botaoSalvar) return;
 
   const opcao = document.createElement('option');
   opcao.value = 'pink-glitter';
   opcao.textContent = 'Rosa com glitter ✨';
   seletor.append(opcao);
 
-  // Captura o clique antes do salvamento normal para incorporar a moldura
-  // à imagem exportada. O estúdio é reiniciado pelo fluxo de salvamento atual.
+  // Executa antes do salvamento normal e desenha na camada ativa,
+  // para que juntarCamadas() inclua a moldura na imagem final.
   botaoSalvar.addEventListener('click', () => {
     if (seletor.value !== 'pink-glitter') return;
-    const ctx = tela.getContext('2d');
+    const ctx = camadas[ativa].canvas.getContext('2d');
     const w = tela.width, h = tela.height;
     const faixa = Math.round(Math.min(w, h) * 0.055);
     ctx.save();
-
-    // Base rosa perolada e filetes brilhantes.
     const grad = ctx.createLinearGradient(0, 0, w, h);
     grad.addColorStop(0, '#ffb8e5');
     grad.addColorStop(.28, '#ff4fb6');
@@ -31,7 +28,6 @@
     ctx.fillRect(0, h - faixa, w, faixa);
     ctx.fillRect(0, faixa, faixa, h - faixa);
     ctx.fillRect(w - faixa, faixa, faixa, h - faixa);
-
     ctx.strokeStyle = '#fff4fc';
     ctx.lineWidth = Math.max(3, faixa * .09);
     ctx.strokeRect(faixa * .18, faixa * .18, w - faixa * .36, h - faixa * .36);
@@ -39,7 +35,6 @@
     ctx.lineWidth = Math.max(2, faixa * .045);
     ctx.strokeRect(faixa * .42, faixa * .42, w - faixa * .84, h - faixa * .84);
 
-    // Glitter determinístico: pequenas estrelas e pontos para não piscar a cada clique.
     let seed = 92831;
     const rand = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
     const pontos = Math.round((w + h) * .42);
@@ -62,5 +57,6 @@
       ctx.fill();
     }
     ctx.restore();
+    redesenhar();
   }, { capture: true });
 })();
