@@ -13,6 +13,26 @@ const TEMAS = ['Minha escola em cores', 'Um lugar que me faz bem', 'Futuro', 'M�
 const UMA_SEMANA_MS = 7 * 24 * 3600 * 1000;
 const TEMA = TEMAS[Math.floor(Date.now() / UMA_SEMANA_MS) % TEMAS.length];
 
+// ---------- Imagens aprovadas do repositório ----------
+const ARQUIVOS_IMAGENS_APROVADAS = [
+  'WhatsApp Image 2026-10-10 at 11.49.38 (1).jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.38.jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.39 (1).jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.39.jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.40 (1).jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.40 (2).jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.40.jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.41 (1).jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.41 (2).jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.41.jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.42 (1).jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.42.jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.43 (1).jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.43 (2).jpeg',
+  'WhatsApp Image 2026-10-10 at 11.49.43.jpeg',
+];
+const IMAGENS_APROVADAS = ARQUIVOS_IMAGENS_APROVADAS.map((arquivo) => `imagens/${encodeURIComponent(arquivo)}`);
+
 // ---------- O que fica salvo ----------
 //  obras: { id, titulo, autor, moldura, img (foto da obra), hora }
 //  likes: uma linha por clique em "Curtir" { id, obra (id da obra) }
@@ -24,13 +44,27 @@ try { Object.assign(dados, JSON.parse(localStorage.getItem(CHAVE_STORAGE) || '{}
 
 // Versões antigas do site gravaram lixo (uma propriedade "g") dentro das obras. Limpa isso.
 // Também converte os nomes antigos (title/author/style/ts) para os novos.
-dados.obras = dados.obras.map((o) => ({
-  id: o.id, img: o.img,
+dados.obras = dados.obras.map((o, i) => ({
+  id: o.id,
   titulo: o.titulo || o.title || 'Sem título',
   autor: o.autor || o.author || 'Autor anônimo',
   moldura: o.moldura || o.style || 'oak',
   hora: o.hora || o.ts || 0,
+  img: !o.img || /^https?:\/\//i.test(o.img) ? IMAGENS_APROVADAS[i % IMAGENS_APROVADAS.length] : o.img,
 }));
+
+// Em instalação nova, começa com as imagens aprovadas da pasta /imagens.
+if (!dados.obras.length) {
+  const agora = Date.now();
+  dados.obras = IMAGENS_APROVADAS.map((img, i) => ({
+    id: 'aprovada-' + (i + 1),
+    titulo: 'Obra ' + (i + 1),
+    autor: 'ETEC Lauro Gomes',
+    moldura: ['oak', 'black', 'white', 'brass'][i % 4],
+    img,
+    hora: agora + i,
+  }));
+}
 
 function salvarDados() {
   try { localStorage.setItem(CHAVE_STORAGE, JSON.stringify(dados)); return true; }
